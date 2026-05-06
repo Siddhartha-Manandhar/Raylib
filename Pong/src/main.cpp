@@ -10,7 +10,7 @@ Color Yellow = Color{243, 213, 91, 255};
 
 const int screen_width = 1280;
 const int screen_height = 800;
-int player_score = 0;
+int player_score = 9;
 int cpu_score = 0;
 class Ball{
     public:
@@ -44,6 +44,7 @@ class Ball{
                 Resetball();
             }
         }
+
         void Resetball(){
             x = screen_width / 2;
             y = screen_height / 2;
@@ -99,10 +100,26 @@ class CpuPaddle : public Paddle{
         }
 };
 
+class Score: public Ball{
+    public:   
+        void Draw(){
+            DrawText (TextFormat("%i", cpu_score), screen_width / 4 - 20, 20, 80, WHITE);
+            DrawText (TextFormat("%i", player_score), 3 * screen_width / 4 - 20, 20, 80, WHITE);
+        }
+        void Victory_Message(){
+            if (player_score == 10){
+                DrawText("You Win!", screen_width / 2 - 150, screen_height / 2 - 40, 80, WHITE);
+            }
+            if (cpu_score == 10){
+                DrawText("CPU Wins!", screen_width / 2 - 200, screen_height / 2 - 40, 80, WHITE);
+            }
+        }
+};
+
 Ball ball;
 Paddle player;
 CpuPaddle cpu;
-
+Score score;
 int main() 
 {
     cout << "Starting the game" << endl;
@@ -155,10 +172,13 @@ int main()
         ball.Draw();
         player.Draw();
         cpu.Draw();
-        DrawText (TextFormat("%i", cpu_score), screen_width / 4 - 20, 20, 80, WHITE);
-        DrawText (TextFormat("%i", player_score), 3 * screen_width / 4 - 20, 20, 80, WHITE);
-
-
+        score.Draw();
+        if(cpu_score == 10 || player_score == 10){
+            ball.Resetball();
+            ball.speed_x = 0;
+            ball.speed_y = 0;
+            score.Victory_Message();
+        }
         EndDrawing();
 
     }
