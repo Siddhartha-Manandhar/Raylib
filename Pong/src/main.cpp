@@ -17,6 +17,8 @@ class Ball{
         float x, y;
         int speed_x, speed_y;
         int radius;
+        Sound hit_sound;
+        Sound score_update;
 
         void Draw(){
            DrawCircle(x, y, radius, Yellow); 
@@ -27,15 +29,18 @@ class Ball{
 
             if (y + radius >= screen_height || y - radius <= 0){
                 speed_y *= -1;
+                PlaySound(hit_sound);
             }
 
             if (x + radius >= screen_width){
                 cpu_score++;
+                PlaySound(score_update);
                 Resetball();
 
             } 
             if (x - radius <= 0){
                 player_score++;
+                PlaySound(score_update);
                 Resetball();
             }
         }
@@ -103,6 +108,7 @@ int main()
     cout << "Starting the game" << endl;
 
     InitWindow(screen_width,  screen_height, "My Pong Game!");
+    InitAudioDevice();
     SetTargetFPS(60);
 
     ball.radius = 20;
@@ -110,6 +116,8 @@ int main()
     ball.y = screen_height / 2;
     ball.speed_x = 7;
     ball.speed_y = 7;
+    ball.hit_sound = LoadSound("assets/sounds/hit.wav");
+    ball.score_update = LoadSound("assets/sounds/score_update.wav");
 
     player.width = 25;
     player.height = 120;
@@ -132,10 +140,12 @@ int main()
 
         if(CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height})){
             ball.speed_x *= -1;
+            PlaySound(ball.hit_sound);
         }
 
         if(CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{cpu.x, cpu.y, cpu.width, cpu.height})){
             ball.speed_x *= -1;
+            PlaySound(ball.hit_sound);
         }
 
         ClearBackground(Dark_Green);
@@ -152,7 +162,7 @@ int main()
         EndDrawing();
 
     }
-
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
