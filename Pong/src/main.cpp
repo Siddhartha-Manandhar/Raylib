@@ -10,8 +10,18 @@ Color Yellow = Color{243, 213, 91, 255};
 
 const int screen_width = 1280;
 const int screen_height = 800;
-int player_score = 9;
+
+Vector2 mouse_position;
+
+int player_score = 10;
 int cpu_score = 0;
+
+class Ball;
+class Paddle;
+class CpuPaddle;
+class Menu;
+class Score;
+
 class Ball{
     public:
         float x, y;
@@ -53,7 +63,7 @@ class Ball{
             speed_x *= speed_choices[GetRandomValue(0, 1)] ;
             speed_y *= speed_choices[GetRandomValue(0, 1)] ;
         }
-};
+}ball;
 
 
 
@@ -85,7 +95,7 @@ class Paddle{
             }
             LimitMovement();
         }
-};
+}player;
 
 class CpuPaddle : public Paddle{
     public:
@@ -98,9 +108,30 @@ class CpuPaddle : public Paddle{
             }
             LimitMovement();
         }
-};
+}cpu;
 
-class Score: public Ball{
+class Menu: public Ball{
+    public:
+        void RestartButton(){
+            DrawRectangle(screen_width / 2 - 150, screen_height / 2 + 50, 300, 75, WHITE);
+            DrawText("Restart", screen_width / 2 - 90, screen_height / 2 + 60, 50, Dark_Green);
+
+            if (CheckCollisionPointRec(mouse_position, Rectangle{screen_width / 2 - 150, screen_height / 2 + 50, 300, 75})){
+                DrawRectangle(screen_width / 2 - 160, screen_height / 2 + 45, 320, 95, WHITE);
+                DrawText("Restart", screen_width / 2 - 90, screen_height / 2 + 70, 50, Dark_Green);
+
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                    player_score = 0;
+                    cpu_score = 0;
+
+                    ball.Resetball();
+                    ball.speed_x = 7;
+                    ball.speed_y = 7;
+                }
+            }
+        }
+};
+class Score:public Menu{
     public:   
         void Draw(){
             DrawText (TextFormat("%i", cpu_score), screen_width / 4 - 20, 20, 80, WHITE);
@@ -113,13 +144,12 @@ class Score: public Ball{
             if (cpu_score == 10){
                 DrawText("CPU Wins!", screen_width / 2 - 200, screen_height / 2 - 40, 80, WHITE);
             }
-        }
-};
+            RestartButton();
 
-Ball ball;
-Paddle player;
-CpuPaddle cpu;
-Score score;
+        }
+}score;
+
+
 int main() 
 {
     cout << "Starting the game" << endl;
@@ -150,6 +180,8 @@ int main()
 
     while(WindowShouldClose() == false){
         BeginDrawing();
+
+        mouse_position = GetMousePosition();
 
         ball.Update();
         player.Update();
