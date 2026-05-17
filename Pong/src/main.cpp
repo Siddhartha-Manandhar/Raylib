@@ -14,10 +14,12 @@ const int screen_height = 800;
 
 Vector2 mouse_position;
 
-int player_score = 10;
+int player_score = 0;
 int cpu_score = 0;
 
 bool game_start = false;
+bool victory_sound_played = false;
+bool defeat_sound_played = false;
 
 class Ball;
 class Paddle;
@@ -118,9 +120,7 @@ class Menu: public Ball{
         Sound game_start_sound;
 
 
-        void LoadSounds(){
-            game_start_sound = LoadSound("assets/sounds/game_start.wav");
-        }
+        
         void RestartButton(){
             DrawRectangle(screen_width / 2 - 150, screen_height / 2 + 50, 300, 75, WHITE);
             DrawText("Restart", screen_width / 2 - 90, screen_height / 2 + 60, 50, Dark_Green);
@@ -132,6 +132,8 @@ class Menu: public Ball{
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
                     player_score = 0;
                     cpu_score = 0;
+                    victory_sound_played = false;
+                    defeat_sound_played = false;
 
                     ball.Resetball();
                     ball.speed_x = 7;
@@ -157,8 +159,10 @@ class Menu: public Ball{
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
                 game_start = true;
                 PlaySound(game_start_sound);
-                player_score = 0;
-                cpu_score = 0;
+                player_score = 9;
+                cpu_score = 9;
+                victory_sound_played = false;
+                defeat_sound_played = false;
 
                 ball.Resetball();
                 ball.speed_x = 7;
@@ -170,20 +174,39 @@ class Menu: public Ball{
 };
 class Score:public Menu{
     public:   
+
+        Sound victory_sound;
+        Sound defeat_sound;
+
+        void LoadSounds(){
+            game_start_sound = LoadSound("assets/sounds/game_start.wav");
+            victory_sound = LoadSound("assets/sounds/game_win.wav");
+            defeat_sound = LoadSound("assets/sounds/game_losing.wav");
+        }
         void Draw(){
             DrawText (TextFormat("%i", cpu_score), screen_width / 4 - 20, 20, 80, WHITE);
             DrawText (TextFormat("%i", player_score), 3 * screen_width / 4 - 20, 20, 80, WHITE);
         }
         void Victory_Message(){
             if (player_score == 10){
-                DrawText("You Win!", screen_width / 2 - 150, screen_height / 2 - 40, 80, WHITE);
+                if (!victory_sound_played){
+                    PlaySound(victory_sound);
+                    victory_sound_played = true;
+                }
+                DrawText("You Win!", screen_width / 2 - 150, screen_height / 2 - 40, 80, WHITE);   
             }
             if (cpu_score == 10){
+                if (!defeat_sound_played){
+                    PlaySound(defeat_sound);
+                    defeat_sound_played = true;
+                }
                 DrawText("CPU Wins!", screen_width / 2 - 200, screen_height / 2 - 40, 80, WHITE);
+                
             }
             RestartButton();
 
         }
+        
 }score;
 
 
