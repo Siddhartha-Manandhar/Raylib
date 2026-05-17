@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -15,6 +16,8 @@ Vector2 mouse_position;
 
 int player_score = 10;
 int cpu_score = 0;
+
+bool game_start = false;
 
 class Ball;
 class Paddle;
@@ -112,6 +115,12 @@ class CpuPaddle : public Paddle{
 
 class Menu: public Ball{
     public:
+        Sound game_start_sound;
+
+
+        void LoadSounds(){
+            game_start_sound = LoadSound("assets/sounds/game_start.wav");
+        }
         void RestartButton(){
             DrawRectangle(screen_width / 2 - 150, screen_height / 2 + 50, 300, 75, WHITE);
             DrawText("Restart", screen_width / 2 - 90, screen_height / 2 + 60, 50, Dark_Green);
@@ -130,6 +139,34 @@ class Menu: public Ball{
                 }
             }
         }
+
+        void MainMenu(){
+            ClearBackground(Dark_Green);
+            
+            DrawText("Pong Game", screen_width / 2 - 180, screen_height / 2 - 80, 80, WHITE);
+
+            float t = fmodf(GetTime(), 4.0f);   // 4s cycle
+            bool show = (t < 3.0f);             // on for 3s, off for 1s
+
+            float phase = t / 3.0f;             // 0..1 while visible
+            float alpha = show ? (0.2f + 0.8f * sinf(phase * 3.14159f)) : 0.0f;
+            
+            Color text_color = ColorAlpha(WHITE, alpha);
+            DrawText("Click to Start", screen_width / 2 - 150, screen_height / 2 + 50, 50, text_color);
+
+            if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+                game_start = true;
+                PlaySound(game_start_sound);
+                player_score = 0;
+                cpu_score = 0;
+
+                ball.Resetball();
+                ball.speed_x = 7;
+                ball.speed_y = 7;
+            }
+
+        }
+        
 };
 class Score:public Menu{
     public:   
@@ -178,39 +215,46 @@ int main()
     cpu.y = screen_height / 2 - cpu.height / 2;
     cpu.speed = 6;
 
+    score.LoadSounds();
+    
     while(WindowShouldClose() == false){
         BeginDrawing();
 
         mouse_position = GetMousePosition();
 
-        ball.Update();
-        player.Update();
-        cpu.Update(ball.y);
-
-        if(CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height})){
-            ball.speed_x *= -1;
-            PlaySound(ball.hit_sound);
+        if(!game_start){
+            score.MainMenu();
         }
+        else{
+            ball.Update();
+            player.Update();
+            cpu.Update(ball.y);
 
-        if(CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{cpu.x, cpu.y, cpu.width, cpu.height})){
-            ball.speed_x *= -1;
-            PlaySound(ball.hit_sound);
-        }
+            if(CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{player.x, player.y, player.width, player.height})){
+                ball.speed_x *= -1;
+                PlaySound(ball.hit_sound);
+            }
 
-        ClearBackground(Dark_Green);
-        DrawRectangle(screen_width / 2, 0, screen_width, screen_height, Green);
-        DrawCircle(screen_width / 2, screen_height / 2, 150, Light_Green);
-        DrawLine(screen_width / 2, 0, screen_width / 2, screen_height, WHITE);
-        ball.Draw();
-        player.Draw();
-        cpu.Draw();
-        score.Draw();
-        if(cpu_score == 10 || player_score == 10){
-            ball.Resetball();
-            ball.speed_x = 0;
-            ball.speed_y = 0;
-            score.Victory_Message();
-        }
+            if(CheckCollisionCircleRec(Vector2{ball.x, ball.y}, ball.radius, Rectangle{cpu.x, cpu.y, cpu.width, cpu.height})){
+                ball.speed_x *= -1;
+                PlaySound(ball.hit_sound);
+            }
+
+            ClearBackground(Dark_Green);
+            DrawRectangle(screen_width / 2, 0, screen_width, screen_height, Green);
+            DrawCircle(screen_width / 2, screen_height / 2, 150, Light_Green);
+            DrawLine(screen_width / 2, 0, screen_width / 2, screen_height, WHITE);
+            ball.Draw();
+            player.Draw();
+            cpu.Draw();
+            score.Draw();
+            if(cpu_score == 10 || player_score == 10){
+                ball.Resetball();
+                ball.speed_x = 0;
+                ball.speed_y = 0;
+                score.Victory_Message();
+            }
+        }   
         EndDrawing();
 
     }
