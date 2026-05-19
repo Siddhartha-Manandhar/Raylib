@@ -12,6 +12,8 @@ Color Yellow = Color{243, 213, 91, 255};
 const int screen_width = 1280;
 const int screen_height = 800;
 
+Music bg_music;
+
 Vector2 mouse_position;
 
 int player_score = 0;
@@ -20,6 +22,8 @@ int cpu_score = 0;
 bool game_start = false;
 bool victory_sound_played = false;
 bool defeat_sound_played = false;
+bool bg_music_played = false;
+bool bg_music_paused = false;
 
 class Ball;
 class Paddle;
@@ -130,10 +134,13 @@ class Menu: public Ball{
                 DrawText("Restart", screen_width / 2 - 90, screen_height / 2 + 70, 50, Dark_Green);
 
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
+
+                    ResumeMusicStream(bg_music);
                     player_score = 0;
                     cpu_score = 0;
                     victory_sound_played = false;
-                    defeat_sound_played = false;
+                    defeat_sound_played = false;        
+                    bg_music_paused = false;
 
                     ball.Resetball();
                     ball.speed_x = 7;
@@ -159,8 +166,8 @@ class Menu: public Ball{
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
                 game_start = true;
                 PlaySound(game_start_sound);
-                player_score = 9;
-                cpu_score = 9;
+                player_score = 0;
+                cpu_score = 0;
                 victory_sound_played = false;
                 defeat_sound_played = false;
 
@@ -188,6 +195,8 @@ class Score:public Menu{
             DrawText (TextFormat("%i", player_score), 3 * screen_width / 4 - 20, 20, 80, WHITE);
         }
         void Victory_Message(){
+            PauseMusicStream(bg_music);
+            bg_music_paused = true;
             if (player_score == 10){
                 if (!victory_sound_played){
                     PlaySound(victory_sound);
@@ -239,6 +248,7 @@ int main()
     cpu.speed = 6;
 
     score.LoadSounds();
+    bg_music = LoadMusicStream("assets/sounds/bg_music.mp3");
     
     while(WindowShouldClose() == false){
         BeginDrawing();
@@ -249,6 +259,14 @@ int main()
             score.MainMenu();
         }
         else{
+            if(!bg_music_played){
+                PlayMusicStream(bg_music);
+                UpdateMusicStream(bg_music);
+                bg_music_played = true;
+            }
+            UpdateMusicStream(bg_music);
+            bg_music_played = IsMusicStreamPlaying(bg_music);
+
             ball.Update();
             player.Update();
             cpu.Update(ball.y);
